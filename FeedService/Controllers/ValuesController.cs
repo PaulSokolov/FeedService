@@ -3,12 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using FeedService.DbModels;
+using Microsoft.EntityFrameworkCore;
+using FeedService.Intrefaces;
+using FeedService.Models;
 
 namespace FeedService.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
-    public class ValuesController : Controller
+    public class FeedServiceController : Controller
     {
+        FeedServiceContext db;
+
+        public FeedServiceController(FeedServiceContext context)
+        {
+            db = context;
+        }
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
@@ -18,9 +30,40 @@ namespace FeedService.Controllers
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<IActionResult> Get([FromRoute]int id)
         {
-            return "value";
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var collection = await db.Collections.SingleOrDefaultAsync(m => m.Id == id);
+
+            if (collection == null)
+            {
+                return NotFound();
+            }
+
+            List<IFeedItem> news = FeedsReaderFactory.GetNews(collection).ToList();
+                /*new List<IFeedItem>();
+
+            foreach(var feed in collection.Feeds)
+            {
+                IFeedReader reader;
+                switch (feed.Type)
+                {
+                    case FeedType.Atom:
+                        reader = new AtomFeedReader();
+                        news.AddRange(reader.ReadFeed(feed.Url));
+                        break;
+                    case FeedType.Rss:
+                        reader = new RssFeedReader();
+                        news.AddRange(reader.ReadFeed(feed.Url));
+                        break;
+                }
+            }*/
+
+            return Ok(news);
         }
 
         // POST api/values
