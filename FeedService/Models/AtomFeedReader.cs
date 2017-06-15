@@ -7,6 +7,7 @@ namespace FeedService.Models
 {
     public class AtomFeedReader : IFeedReader, IFeed
     {
+        public string Url { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string PublishedDate { get; set; }
@@ -14,10 +15,14 @@ namespace FeedService.Models
 
         public IEnumerable<IFeedItem> ReadFeed(string url)
         {
+
             var rssFeed = XDocument.Load(url);
 
-            var posts = from item in rssFeed.Descendants("item")
+            var posts = from item in rssFeed.Descendants("entry")
                         select new AtomPost(item);
+
+            Items = posts;
+            Url = url;
             //{
             //    Title = item.Element("title").Value,
             //    Description = item.Element("description").Value,

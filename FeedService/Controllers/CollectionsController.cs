@@ -83,6 +83,54 @@ namespace FeedService.Controllers
             return NoContent();
         }
 
+        [Route("/AddToCollection/{id}")]
+        [HttpPut]
+        public async Task<IActionResult> PutFeed([FromRoute] int id, [FromBody] Feed feed)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            Collection col = await _context.Collections.FirstOrDefaultAsync(c => c.User.Id == 1 && c.Id == id);
+
+            if (col == null)
+            {
+                return BadRequest();
+            }
+
+            Feed _feed = await _context.Feeds.FirstOrDefaultAsync(f => f.Url == feed.Url);
+
+            if (_feed == null)
+            {
+                col.Feeds.Add(feed);
+                _context.Entry(col).State = EntityState.Modified;
+            }
+            else
+            {
+                col.Feeds.Add(_feed);
+                _context.Entry(col).State = EntityState.Modified;
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!FeedExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
         // POST: api/Collections
         [HttpPost]
         public async Task<IActionResult> PostCollection([FromBody] Collection collection)
@@ -122,6 +170,11 @@ namespace FeedService.Controllers
         private bool CollectionExists(int id)
         {
             return _context.Collections.Any(e => e.Id == id);
+        }
+
+        private bool FeedExists(int id)
+        {
+            return _context.Feeds.Any(e => e.Id == id);
         }
     }
 }

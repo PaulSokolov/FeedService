@@ -2,7 +2,7 @@
 
 namespace FeedService.Intrefaces
 {
-    public interface IFeedReader
+    public interface IFeedReader : IFeed
     {
         IEnumerable<IFeedItem> ReadFeed(string source);
     }

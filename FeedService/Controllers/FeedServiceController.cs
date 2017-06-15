@@ -8,6 +8,7 @@ using FeedService.DbModels;
 using Microsoft.EntityFrameworkCore;
 using FeedService.Intrefaces;
 using FeedService.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FeedService.Controllers
 {
@@ -16,10 +17,12 @@ namespace FeedService.Controllers
     public class FeedServiceController : Controller
     {
         FeedServiceContext db;
+        IMemoryCache _cache;
 
-        public FeedServiceController(FeedServiceContext context)
+        public FeedServiceController(FeedServiceContext context, IMemoryCache cache)
         {
             db = context;
+            _cache = cache;
         }
         // GET api/values
         [HttpGet]
@@ -44,7 +47,16 @@ namespace FeedService.Controllers
                 return NotFound();
             }
 
-            List<IFeedItem> news = FeedsReaderFactory.GetNews(collection).ToList();
+            List<IFeedItem> news = new List<IFeedItem>();
+            foreach (var feed in collection.Feeds)
+            {
+                IFeedReader reader = FeedsReaderFactory.CreateReader(feed.Type);
+
+                news.AddRange(reader.ReadFeed(feed.Url));
+                CacheFeed((IFeed)reader);
+            }
+
+            FeedsReaderFactory.CacheNews(_cache);
                 /*new List<IFeedItem>();
 
             foreach(var feed in collection.Feeds)
@@ -82,6 +94,13 @@ namespace FeedService.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+
+        private void CacheFeed(IFeed feed)
+        {
+            IFeed tmp;
+            if (!_cache.TryGetValue(feed.Url, out tmp))
+                _cache.Set(feed.Url, feed, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
         }
     }
 }

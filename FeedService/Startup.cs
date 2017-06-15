@@ -34,7 +34,7 @@ namespace FeedService
             // добавляем контекст MobileContext в качестве сервиса в приложение
             services.AddDbContext<FeedServiceContext>(options =>
                 options.UseSqlServer(connection));
-
+            services.AddMemoryCache();
             // Add framework services.
             services.AddMvc();
         }

@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+VisualStudioVersion = 15.0.26430.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedService", "FeedService\FeedService.csproj", "{CA0FD000-89E2-40E6-9EA3-03C676DF3665}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeedService", "FeedService\FeedService.csproj", "{CA0FD000-89E2-40E6-9EA3-03C676DF3665}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedServiceSDK", "FeedServiceSDK\FeedServiceSDK.csproj", "{5A8CABE4-446A-486C-A249-A0FDE5FED07A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedServiceClient", "FeedServiceClient\FeedServiceClient.csproj", "{75787113-F14D-44C2-A612-59012A0ADE02}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{CA0FD000-89E2-40E6-9EA3-03C676DF3665}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA0FD000-89E2-40E6-9EA3-03C676DF3665}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA0FD000-89E2-40E6-9EA3-03C676DF3665}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A8CABE4-446A-486C-A249-A0FDE5FED07A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A8CABE4-446A-486C-A249-A0FDE5FED07A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A8CABE4-446A-486C-A249-A0FDE5FED07A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A8CABE4-446A-486C-A249-A0FDE5FED07A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75787113-F14D-44C2-A612-59012A0ADE02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75787113-F14D-44C2-A612-59012A0ADE02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75787113-F14D-44C2-A612-59012A0ADE02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75787113-F14D-44C2-A612-59012A0ADE02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
