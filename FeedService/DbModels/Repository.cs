@@ -12,6 +12,11 @@ namespace FeedService.DbModels
     {
         private readonly Context _context;
 
+        public Repository(Context context)
+        {
+            _context = context;
+        }
+
         public virtual IQueryable<T> GetAll()
         {
 

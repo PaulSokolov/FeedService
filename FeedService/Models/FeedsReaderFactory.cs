@@ -3,8 +3,6 @@ using FeedService.Intrefaces;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FeedService.Models
 {
@@ -29,58 +27,15 @@ namespace FeedService.Models
             {
                 case FeedType.Atom:
                     return new AtomFeedReader();
-                case FeedType.Rss:
+                case FeedType.RSS:
                     return new RssFeedReader();
+                case FeedType.RDF:
+                    return new RdfFeedReader();
             }
 
             throw new NotImplementedException("There is no such reader implemented");
         }
 
-        public static IEnumerable<IFeedItem> GetNews(Collection feedCollection)
-        {
-            List<IFeedItem> news = new List<IFeedItem>();
-
-            foreach (var feed in feedCollection.Feeds)
-            {
-                IFeedReader reader;
-                switch (feed.Type)
-                {
-                    case FeedType.Atom:
-                        reader = new AtomFeedReader();
-                        news.AddRange(reader.ReadFeed(feed.Url));
-                        Feeds.Add(feed.Url, (IFeed)reader);
-                        break;
-                    case FeedType.Rss:
-                        reader = new RssFeedReader();
-                        news.AddRange(reader.ReadFeed(feed.Url));
-                        Feeds.Add(feed.Url, (IFeed)reader);
-                        break;
-                }
-            }
-
-            return news;
-        }
-
-        public static  IFeed GetFeed(string url)
-        {
-            if (Feeds.ContainsKey(url))
-                return Feeds[url];
-
-            return null;
-        }
-
-        public static void CacheNews(IMemoryCache cache)
-        {
-            _cache = cache;
-
-            foreach(var feed in Feeds)
-            {
-                IFeed _feed;
-                if(!_cache.TryGetValue(feed.Key, out _feed))
-                {
-                    _cache.Set(feed.Key, feed.Value,new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
-                }
-            }
-        }
+       
     }
 }

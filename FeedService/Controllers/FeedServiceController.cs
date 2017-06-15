@@ -18,11 +18,13 @@ namespace FeedService.Controllers
     public class FeedServiceController : Controller
     {
         IRepository<Collection> _collectionRepository;
+        IRepository<Feed> _feedRepository;
         IMemoryCache _cache;
 
-        public FeedServiceController(IRepository<Collection> collectionRepository, IMemoryCache cache)
+        public FeedServiceController(IRepository<Collection> collectionRepository, IRepository<Feed> feedRepository, IMemoryCache cache)
         {
             _collectionRepository = collectionRepository;
+            _feedRepository = feedRepository;
             _cache = cache;
         }
         // GET api/values
@@ -33,7 +35,8 @@ namespace FeedService.Controllers
         }
 
         // GET api/values/5
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("/GetNews/{id}")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             if (!ModelState.IsValid)
@@ -41,23 +44,24 @@ namespace FeedService.Controllers
                 return BadRequest(ModelState);
             }
 
-            var collection =  _collectionRepository.GetAll().FirstOrDefault(m => m.Id == id);
-
+            var collection =  _collectionRepository.GetAll().Include(c=>c.CollectionFeeds).FirstOrDefault(m => m.Id == id);
+            _feedRepository.GetAll().Where(f => f.Id == collection.CollectionFeeds.First(cf => cf.FeedId == f.Id).FeedId).Load();
             if (collection == null)
             {
                 return NotFound();
             }
 
             List<IFeedItem> news = new List<IFeedItem>();
-            foreach (var feed in collection.Feeds)
+
+            foreach (var feed in collection.CollectionFeeds.Select(cf=>cf.Feed))
             {
                 IFeedReader reader = FeedsReaderFactory.CreateReader(feed.Type);
 
                 news.AddRange(reader.ReadFeed(feed.Url));
-                CacheFeed(reader);
+                //CacheFeed(reader);
             }
 
-            FeedsReaderFactory.CacheNews(_cache);
+            //FeedsReaderFactory.CacheNews(_cache);
                 /*new List<IFeedItem>();
 
             foreach(var feed in collection.Feeds)

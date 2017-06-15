@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace FeedService.Models
@@ -17,19 +19,37 @@ namespace FeedService.Models
 
         public IEnumerable<IFeedItem> ReadFeed(string url)
         {
-            var rssFeed = XDocument.Load(url);
+            try
+            {
+                var client = new HttpClient();
 
-            var posts = from item in rssFeed.Descendants("item")
-                        select new RssPost(item);
-            Items = posts;
-            Url = url;
-            //{
-            //    Title = item.Element("title").Value,
-            //    Description = item.Element("description").Value,
-            //    PublishedDate = item.Element("pubDate").Value
-            //};
+                var stream = client.GetStreamAsync(url).Result;
 
-            return posts;
+                XDocument doc = XDocument.Load(stream);
+                // RSS/Channel/item
+                var entries = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
+                              select new RssPost
+                              {
+                                  Content = item.Elements().First(i => i.Name.LocalName == "description").Value,
+                                  Link = item.Elements().First(i => i.Name.LocalName == "link").Value,
+                                  PublishedDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "pubDate").Value),
+                                  Title = item.Elements().First(i => i.Name.LocalName == "title").Value
+                              };
+                return entries.ToList();
+            }
+            catch
+            {
+                return new List<IFeedItem>();
+            }
+        }
+
+        private DateTime ParseDate(string date)
+        {
+            DateTime result;
+            if (DateTime.TryParse(date, out result))
+                return result;
+            else
+                return DateTime.MinValue;
         }
     }
 }

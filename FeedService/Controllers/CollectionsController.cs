@@ -18,11 +18,13 @@ namespace FeedService.Controllers
     {
         private readonly IRepository<Collection> _collectionRepository;
         private readonly IRepository<Feed> _feedRepository;
+        private readonly IRepository<CollectionFeed> _collectionFeedRepository;
 
-        public CollectionsController(IRepository<Collection> collectionRepository, IRepository<Feed> feedRepository)
+        public CollectionsController(IRepository<Collection> collectionRepository, IRepository<Feed> feedRepository, IRepository<CollectionFeed> collectionFeedRepository)
         {
             _collectionRepository = collectionRepository;
             _feedRepository = feedRepository;
+            _collectionFeedRepository = collectionFeedRepository;
         }
 
         // GET: api/Collections
@@ -88,14 +90,14 @@ namespace FeedService.Controllers
 
         [Route("/AddToCollection/{id}")]
         [HttpPut]
-        public async Task<IActionResult> PutFeed([FromRoute] int id, [FromBody] Feed feed)
+        public async Task<IActionResult> AddFeedToCollection([FromRoute] int id, [FromBody] Feed feed)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Collection col = await _collectionRepository.GetAll().FirstOrDefaultAsync(c => c.User.Id == 1 && c.Id == id);
+            Collection col = await _collectionRepository.GetAll().FirstOrDefaultAsync(c =>  c.Id == id);
 
             if (col == null)
             {
@@ -106,12 +108,12 @@ namespace FeedService.Controllers
 
             if (_feed == null)
             {
-                col.Feeds.Add(feed);
+                col.CollectionFeeds.Add(new CollectionFeed { Feed = feed, Collection = col });
                 _collectionRepository.Edit(col);
             }
             else
             {
-                col.Feeds.Add(_feed);
+                col.CollectionFeeds.Add(new CollectionFeed { Feed = _feed, Collection = col });
                 _collectionRepository.Edit(col);
             }
 

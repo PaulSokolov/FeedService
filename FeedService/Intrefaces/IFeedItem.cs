@@ -1,9 +1,12 @@
-﻿namespace FeedService.Intrefaces
+﻿using System;
+
+namespace FeedService.Intrefaces
 {
     public interface IFeedItem
     {
         string Title { get; set; }
-        string Description { get; set; }
-        string PublishedDate { get; set; }
+        string Content { get; set; }
+        string Link { get; set; }
+        DateTime PublishedDate { get; set; }
     }
 }

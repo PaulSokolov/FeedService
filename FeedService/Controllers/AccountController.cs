@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
 using FeedService.DbModels;
 using FeedService.DbModels.Interfaces;
@@ -25,30 +23,27 @@ namespace FeedService.Controllers
         }
 
         [HttpPost("/register")]
-        public async Task Register([FromBody] User user)
+        public async Task<IActionResult> Register([FromBody] User user)
         {
             if (!ModelState.IsValid)
             {
-                Response.StatusCode = 400;
-                return;
+                return BadRequest();
             }
 
             User tempUser = _userRepository.GetAll().SingleOrDefault(u => u.Login == user.Login);
             if(tempUser != null)
             {
-                Response.StatusCode = 400;
-                await Response.WriteAsync("User with such login already exists");
-                return;
+                return BadRequest("User with such login already exists");
             }
 
             await _userRepository.AddAsync(user);
             await _userRepository.SaveAsync();
 
-            await Response.WriteAsync($"User {user.Login} registered successfully");
+            return Ok($"User {user.Login} registered successfully");
         }
 
         [HttpPost("/token")]
-        public async Task Token()
+        public async Task<IActionResult> Token()
         {
             var username = Request.Form["username"];
             var password = Request.Form["password"];
@@ -56,9 +51,7 @@ namespace FeedService.Controllers
             var identity = GetIdentity(username, password);
             if (identity == null)
             {
-                Response.StatusCode = 400;
-                await Response.WriteAsync("Invalid username or password.");
-                return;
+                return BadRequest("Invalid username or password.");
             }
 
             var now = DateTime.UtcNow;
@@ -79,8 +72,7 @@ namespace FeedService.Controllers
             };
 
             // сериализация ответа
-            Response.ContentType = "application/json";
-            await Response.WriteAsync(JsonConvert.SerializeObject(response, new JsonSerializerSettings { Formatting = Formatting.Indented }));
+            return Ok(response);
         }
 
         private ClaimsIdentity GetIdentity(string username, string password)

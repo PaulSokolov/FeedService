@@ -17,5 +17,22 @@ namespace FeedService.DbModels
         {
 
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<CollectionFeed>()
+            .HasKey(t => new { t.CollectionId, t.FeedId});
+
+            modelBuilder.Entity<CollectionFeed>()
+                .HasOne(pt => pt.Collection)
+                .WithMany(p => p.CollectionFeeds)
+                .HasForeignKey(pt => pt.CollectionId);
+
+            modelBuilder.Entity<CollectionFeed>()
+                .HasOne(pt => pt.Feed)
+                .WithMany(t => t.FeedCollections)
+                .HasForeignKey(pt => pt.FeedId);
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

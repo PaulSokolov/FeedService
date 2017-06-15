@@ -7,7 +7,9 @@ namespace FeedService.DbModels
 {
     public enum FeedType
     {
+        RSS,
+        RDF,
         Atom,
-        Rss
+        
     }
 }

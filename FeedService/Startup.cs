@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using FeedService.DbModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using FeedService.DbModels.Interfaces;
 
 namespace FeedService
 {
@@ -37,6 +34,10 @@ namespace FeedService
             services.AddMemoryCache();
             // Add framework services.
             services.AddMvc();
+            services.AddSingleton<IRepository<User>, Repository<User, FeedServiceContext>>();
+            services.AddSingleton<IRepository<Collection>, Repository<Collection, FeedServiceContext>>();
+            services.AddSingleton<IRepository<Feed>, Repository<Feed, FeedServiceContext>>();
+            services.AddSingleton<IRepository<CollectionFeed>, Repository<CollectionFeed, FeedServiceContext>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

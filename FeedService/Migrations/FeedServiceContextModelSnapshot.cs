@@ -32,20 +32,29 @@ namespace FeedService.Migrations
                     b.ToTable("Collections");
                 });
 
+            modelBuilder.Entity("FeedService.DbModels.CollectionFeed", b =>
+                {
+                    b.Property<int>("CollectionId");
+
+                    b.Property<int>("FeedId");
+
+                    b.HasKey("CollectionId", "FeedId");
+
+                    b.HasIndex("FeedId");
+
+                    b.ToTable("CollectionFeed");
+                });
+
             modelBuilder.Entity("FeedService.DbModels.Feed", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<int?>("CollectionId");
 
                     b.Property<int>("Type");
 
                     b.Property<string>("Url");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CollectionId");
 
                     b.ToTable("Feeds");
                 });
@@ -68,16 +77,22 @@ namespace FeedService.Migrations
 
             modelBuilder.Entity("FeedService.DbModels.Collection", b =>
                 {
-                    b.HasOne("FeedService.DbModels.User")
+                    b.HasOne("FeedService.DbModels.User", "User")
                         .WithMany("Collections")
                         .HasForeignKey("UserId");
                 });
 
-            modelBuilder.Entity("FeedService.DbModels.Feed", b =>
+            modelBuilder.Entity("FeedService.DbModels.CollectionFeed", b =>
                 {
-                    b.HasOne("FeedService.DbModels.Collection")
-                        .WithMany("Feeds")
-                        .HasForeignKey("CollectionId");
+                    b.HasOne("FeedService.DbModels.Collection", "Collection")
+                        .WithMany("CollectionFeeds")
+                        .HasForeignKey("CollectionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("FeedService.DbModels.Feed", "Feed")
+                        .WithMany("FeedCollections")
+                        .HasForeignKey("FeedId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
         }
     }
