@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedServiceSDK", "FeedServi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedServiceClient", "FeedServiceClient\FeedServiceClient.csproj", "{75787113-F14D-44C2-A612-59012A0ADE02}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedService.Tests", "FeedService.Tests\FeedService.Tests.csproj", "{23DC0E88-CFA3-4595-A604-CB10409A76ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{75787113-F14D-44C2-A612-59012A0ADE02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75787113-F14D-44C2-A612-59012A0ADE02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75787113-F14D-44C2-A612-59012A0ADE02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23DC0E88-CFA3-4595-A604-CB10409A76ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23DC0E88-CFA3-4595-A604-CB10409A76ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23DC0E88-CFA3-4595-A604-CB10409A76ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23DC0E88-CFA3-4595-A604-CB10409A76ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

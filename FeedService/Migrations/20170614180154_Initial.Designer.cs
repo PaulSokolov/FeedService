@@ -4,10 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using FeedService.DbModels;
+using FeedService.DbModels.Interfaces;
 
 namespace FeedService.Migrations
 {
-    [DbContext(typeof(FeedServiceContext))]
+    //[DbContext(typeof(DbModels.Interfaces.IRepository))]
     [Migration("20170614180154_Initial")]
     partial class Initial
     {

@@ -7,7 +7,7 @@ using FeedService.DbModels;
 
 namespace FeedService.Migrations
 {
-    [DbContext(typeof(FeedServiceContext))]
+    //[DbContext(typeof(Irepository))]
     [Migration("20170614180725_ChangedUser")]
     partial class ChangedUser
     {

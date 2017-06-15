@@ -9,6 +9,7 @@ using System.Security.Claims;
 using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
 using FeedService.DbModels;
+using FeedService.DbModels.Interfaces;
 
 namespace FeedService.Controllers
 {
@@ -16,11 +17,11 @@ namespace FeedService.Controllers
     [Route("api/Account")]
     public class AccountController : Controller
     {
-        FeedServiceContext db;
+        IRepository<User> _userRepository;
 
-        public AccountController(FeedServiceContext context)
+        public AccountController(IRepository<User> userRepository):base()
         {
-            db = context;
+            _userRepository = userRepository;
         }
 
         [HttpPost("/register")]
@@ -32,7 +33,7 @@ namespace FeedService.Controllers
                 return;
             }
 
-            User tempUser = db.Users.SingleOrDefault(u => u.Login == user.Login);
+            User tempUser = _userRepository.GetAll().SingleOrDefault(u => u.Login == user.Login);
             if(tempUser != null)
             {
                 Response.StatusCode = 400;
@@ -40,8 +41,8 @@ namespace FeedService.Controllers
                 return;
             }
 
-            db.Users.Add(user);
-            await db.SaveChangesAsync();
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveAsync();
 
             await Response.WriteAsync($"User {user.Login} registered successfully");
         }
@@ -84,7 +85,7 @@ namespace FeedService.Controllers
 
         private ClaimsIdentity GetIdentity(string username, string password)
         {
-            User person = db.Users.FirstOrDefault(x => x.Login == username && x.Password == password);
+            User person = _userRepository.GetAll().FirstOrDefault(x => x.Login == username && x.Password == password);
             if (person != null)
             {
                 var claims = new List<Claim>

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FeedService.DbModels;
 using Microsoft.AspNetCore.Authorization;
+using FeedService.DbModels.Interfaces;
 
 namespace FeedService.Controllers
 {
@@ -15,18 +16,20 @@ namespace FeedService.Controllers
     [Route("api/Collections")]
     public class CollectionsController : Controller
     {
-        private readonly FeedServiceContext _context;
+        private readonly IRepository<Collection> _collectionRepository;
+        private readonly IRepository<Feed> _feedRepository;
 
-        public CollectionsController(FeedServiceContext context)
+        public CollectionsController(IRepository<Collection> collectionRepository, IRepository<Feed> feedRepository)
         {
-            _context = context;
+            _collectionRepository = collectionRepository;
+            _feedRepository = feedRepository;
         }
 
         // GET: api/Collections
         [HttpGet]
         public IEnumerable<Collection> GetCollections()
         {
-            return _context.Collections;
+            return _collectionRepository.GetAll();
         }
 
         // GET: api/Collections/5
@@ -38,7 +41,7 @@ namespace FeedService.Controllers
                 return BadRequest(ModelState);
             }
 
-            var collection = await _context.Collections.SingleOrDefaultAsync(m => m.Id == id);
+            var collection = await _collectionRepository.GetAll().SingleOrDefaultAsync(m => m.Id == id);
 
             if (collection == null)
             {
@@ -62,11 +65,11 @@ namespace FeedService.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(collection).State = EntityState.Modified;
+            _collectionRepository.Edit(collection);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _collectionRepository.SaveAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -92,29 +95,29 @@ namespace FeedService.Controllers
                 return BadRequest(ModelState);
             }
 
-            Collection col = await _context.Collections.FirstOrDefaultAsync(c => c.User.Id == 1 && c.Id == id);
+            Collection col = await _collectionRepository.GetAll().FirstOrDefaultAsync(c => c.User.Id == 1 && c.Id == id);
 
             if (col == null)
             {
                 return BadRequest();
             }
 
-            Feed _feed = await _context.Feeds.FirstOrDefaultAsync(f => f.Url == feed.Url);
+            Feed _feed = await _feedRepository.GetAll().FirstOrDefaultAsync(f => f.Url == feed.Url);
 
             if (_feed == null)
             {
                 col.Feeds.Add(feed);
-                _context.Entry(col).State = EntityState.Modified;
+                _collectionRepository.Edit(col);
             }
             else
             {
                 col.Feeds.Add(_feed);
-                _context.Entry(col).State = EntityState.Modified;
+                _collectionRepository.Edit(col);
             }
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _collectionRepository.SaveAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -140,8 +143,8 @@ namespace FeedService.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.Collections.Add(collection);
-            await _context.SaveChangesAsync();
+            await _collectionRepository.AddAsync(collection);
+            await _collectionRepository.SaveAsync();
 
             return CreatedAtAction("GetCollection", new { id = collection.Id }, collection);
         }
@@ -155,26 +158,26 @@ namespace FeedService.Controllers
                 return BadRequest(ModelState);
             }
 
-            var collection = await _context.Collections.SingleOrDefaultAsync(m => m.Id == id);
+            var collection = await _collectionRepository.GetAll().SingleOrDefaultAsync(m => m.Id == id);
             if (collection == null)
             {
                 return NotFound();
             }
 
-            _context.Collections.Remove(collection);
-            await _context.SaveChangesAsync();
+            _collectionRepository.Delete(collection);
+            await _collectionRepository.SaveAsync();
 
             return Ok(collection);
         }
 
         private bool CollectionExists(int id)
         {
-            return _context.Collections.Any(e => e.Id == id);
+            return _collectionRepository.GetAll().Any(e => e.Id == id);
         }
 
         private bool FeedExists(int id)
         {
-            return _context.Feeds.Any(e => e.Id == id);
+            return _feedRepository.GetAll().Any(e => e.Id == id);
         }
     }
 }

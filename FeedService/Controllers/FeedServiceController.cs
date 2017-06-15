@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using FeedService.Intrefaces;
 using FeedService.Models;
 using Microsoft.Extensions.Caching.Memory;
+using FeedService.DbModels.Interfaces;
 
 namespace FeedService.Controllers
 {
@@ -16,12 +17,12 @@ namespace FeedService.Controllers
     [Route("api/[controller]")]
     public class FeedServiceController : Controller
     {
-        FeedServiceContext db;
+        IRepository<Collection> _collectionRepository;
         IMemoryCache _cache;
 
-        public FeedServiceController(FeedServiceContext context, IMemoryCache cache)
+        public FeedServiceController(IRepository<Collection> collectionRepository, IMemoryCache cache)
         {
-            db = context;
+            _collectionRepository = collectionRepository;
             _cache = cache;
         }
         // GET api/values
@@ -40,7 +41,7 @@ namespace FeedService.Controllers
                 return BadRequest(ModelState);
             }
 
-            var collection = await db.Collections.SingleOrDefaultAsync(m => m.Id == id);
+            var collection =  _collectionRepository.GetAll().FirstOrDefault(m => m.Id == id);
 
             if (collection == null)
             {
@@ -53,7 +54,7 @@ namespace FeedService.Controllers
                 IFeedReader reader = FeedsReaderFactory.CreateReader(feed.Type);
 
                 news.AddRange(reader.ReadFeed(feed.Url));
-                CacheFeed((IFeed)reader);
+                CacheFeed(reader);
             }
 
             FeedsReaderFactory.CacheNews(_cache);
