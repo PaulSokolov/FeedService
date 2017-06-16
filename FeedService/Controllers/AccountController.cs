@@ -27,19 +27,22 @@ namespace FeedService.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new { Error = "Invalid request parameters"});
             }
 
             User tempUser = _userRepository.GetAll().SingleOrDefault(u => u.Login == user.Login);
             if(tempUser != null)
             {
-                return BadRequest("User with such login already exists");
+                return BadRequest(new { Error = "User with such login already exists" });
             }
-
+            if(user.Password.Length < 6)
+            {
+                return BadRequest( new { Error = "Password should be at least 6 symbols" });
+            }
             await _userRepository.AddAsync(user);
             await _userRepository.SaveAsync();
 
-            return Ok($"User {user.Login} registered successfully");
+            return Ok(new { Success = $"User {user.Login} registered successfully" });
         }
 
         [HttpPost("/token")]
@@ -51,11 +54,11 @@ namespace FeedService.Controllers
             var identity = GetIdentity(username, password);
             if (identity == null)
             {
-                return BadRequest("Invalid username or password.");
+                return BadRequest(new { Error = "Invalid username or password." });
             }
 
             var now = DateTime.UtcNow;
-            // создаем JWT-токен
+
             var jwt = new JwtSecurityToken(
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
@@ -71,7 +74,7 @@ namespace FeedService.Controllers
                 username = identity.Name
             };
 
-            // сериализация ответа
+
             return Ok(response);
         }
 
@@ -90,8 +93,7 @@ namespace FeedService.Controllers
                     ClaimsIdentity.DefaultRoleClaimType);
                 return claimsIdentity;
             }
-
-            // если пользователя не найдено
+            
             return null;
         }
 

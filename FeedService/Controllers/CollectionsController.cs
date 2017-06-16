@@ -40,7 +40,7 @@ namespace FeedService.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
             var collection = await _collectionRepository.GetAll().SingleOrDefaultAsync(m => m.Id == id);
@@ -59,12 +59,12 @@ namespace FeedService.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
             if (id != collection.Id)
             {
-                return BadRequest();
+                return BadRequest(new { Error = "Collection ids doesn't match" });
             }
 
             _collectionRepository.Edit(collection);
@@ -77,7 +77,7 @@ namespace FeedService.Controllers
             {
                 if (!CollectionExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { Error = "Collection not found. Try later" });
                 }
                 else
                 {
@@ -85,7 +85,7 @@ namespace FeedService.Controllers
                 }
             }
 
-            return Ok("Collection edited successfully");
+            return Ok(new { Success = "Collection edited successfully" });
         }
 
         [Route("/AddToCollection/{id}")]
@@ -94,7 +94,7 @@ namespace FeedService.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { Error = "Invalid requst parameters", ModelState = ModelState });
             }
 
             Collection col = await _collectionRepository.GetAll().FirstOrDefaultAsync(c =>  c.Id == id);
@@ -125,7 +125,7 @@ namespace FeedService.Controllers
             {
                 if (!FeedExists(id))
                 {
-                    return NotFound(new { Error = "There is no such feed" });
+                    return NotFound(new { Error = "There is no such feed. Try later" });
                 }
                 else
                 {
@@ -133,7 +133,7 @@ namespace FeedService.Controllers
                 }
             }
 
-            return Ok("Feed added to collection successfully");
+            return Ok(new { Success = "Feed added to collection successfully" });
         }
 
         // POST: api/Collections
@@ -142,7 +142,7 @@ namespace FeedService.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { Error = "Invalid reques parameters", ModelState = ModelState });
             }
 
             await _collectionRepository.AddAsync(collection);
@@ -157,7 +157,7 @@ namespace FeedService.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
             var collection = await _collectionRepository.GetAll().SingleOrDefaultAsync(m => m.Id == id);

@@ -27,21 +27,14 @@ namespace FeedService.Controllers
             _feedRepository = feedRepository;
             _cache = cache;
         }
-        // GET api/values
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/values/5
+        
         [HttpGet]
         [Route("/GetNews/{id}")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
             var collection =  _collectionRepository.GetAll().Include(c=>c.CollectionFeeds).FirstOrDefault(m => m.Id == id);
@@ -67,24 +60,6 @@ namespace FeedService.Controllers
             }
 
             return Ok(news);
-        }
-
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody]string value)
-        {
-        }
-
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
 
         private IEnumerable<IFeedItem> GetFromCache(string url)
