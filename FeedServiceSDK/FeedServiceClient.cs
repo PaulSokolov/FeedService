@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using FeedServiceSDK.Exceptions;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,33 @@ namespace FeedServiceSDK
                 return true;
             }
             return false;
+        }
+
+        public async Task<string> Register(string login, string password)
+        {
+
+            var content = JsonConvert.SerializeObject(new { Name = login, Password = password });
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri(SERVER_NAME + "/register"),
+                Method = HttpMethod.Post,
+                Content = new StringContent(content.ToString(), Encoding.UTF8, "application/json")
+            };
+
+            var response = await client.SendAsync(request);
+            var respContent = await response.Content.ReadAsStringAsync();
+
+
+            JObject jObject = JObject.Parse(respContent);
+            JToken value;
+            if (jObject.TryGetValue("error", out value))
+                throw new FeedServiceException(value.ToString());
+
+            if (jObject.TryGetValue("success", out value))
+                return value.ToString();
+
+            throw new FeedServiceException("Unknown exception");
+                
         }
 
         public async Task<int> CreateCollection(string name)
@@ -102,8 +130,14 @@ namespace FeedServiceSDK
             var respContent = await response.Content.ReadAsStringAsync();
 
             JObject jObject = JObject.Parse(respContent);
-            var answer = jObject.ToString();
-            return answer;
+            JToken value;
+            if (jObject.TryGetValue("error", out value))
+                throw new FeedServiceException(value.ToString());
+
+            if (jObject.TryGetValue("success", out value))
+                return value.ToString();
+
+            throw new FeedServiceException("Unknown exception.");
         }
 
         public async Task<List<FeedItem>> ReadNewsFromCollection(int collectionId)

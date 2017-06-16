@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace FeedServiceSDK
+namespace FeedServiceSDK.Exceptions
 {
     [Serializable]
-    internal class CreateCollectionException : Exception
+    public class CreateCollectionException : Exception
     {
         public CreateCollectionException()
         {
