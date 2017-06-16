@@ -38,6 +38,7 @@ namespace FeedService
             services.AddSingleton<IRepository<Collection>, Repository<Collection, FeedServiceContext>>();
             services.AddSingleton<IRepository<Feed>, Repository<Feed, FeedServiceContext>>();
             services.AddSingleton<IRepository<CollectionFeed>, Repository<CollectionFeed, FeedServiceContext>>();
+            services.AddSingleton<IFeedServiceUoW, FeedServiceUnit>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

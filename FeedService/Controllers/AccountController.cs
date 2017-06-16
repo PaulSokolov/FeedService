@@ -15,11 +15,11 @@ namespace FeedService.Controllers
     [Route("api/Account")]
     public class AccountController : Controller
     {
-        IRepository<User> _userRepository;
+        IFeedServiceUoW _db;
 
-        public AccountController(IRepository<User> userRepository):base()
+        public AccountController(IFeedServiceUoW db)
         {
-            _userRepository = userRepository;
+            _db = db;
         }
 
         [HttpPost("/register")]
@@ -30,7 +30,7 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid request parameters"});
             }
 
-            User tempUser = _userRepository.GetAll().SingleOrDefault(u => u.Login == user.Login);
+            User tempUser = _db.Users.GetAll().SingleOrDefault(u => u.Login == user.Login);
             if(tempUser != null)
             {
                 return BadRequest(new { Error = "User with such login already exists" });
@@ -39,8 +39,8 @@ namespace FeedService.Controllers
             {
                 return BadRequest( new { Error = "Password should be at least 6 symbols" });
             }
-            await _userRepository.AddAsync(user);
-            await _userRepository.SaveAsync();
+            await _db.Users.AddAsync(user);
+            await _db.Users.SaveAsync();
 
             return Ok(new { Success = $"User {user.Login} registered successfully" });
         }
@@ -80,7 +80,7 @@ namespace FeedService.Controllers
 
         private ClaimsIdentity GetIdentity(string username, string password)
         {
-            User person = _userRepository.GetAll().FirstOrDefault(x => x.Login == username && x.Password == password);
+            User person = _db.Users.GetAll().FirstOrDefault(x => x.Login == username && x.Password == password);
             if (person != null)
             {
                 var claims = new List<Claim>

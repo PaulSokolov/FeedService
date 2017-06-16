@@ -16,22 +16,18 @@ namespace FeedService.Controllers
     [Route("api/Collections")]
     public class CollectionsController : Controller
     {
-        private readonly IRepository<Collection> _collectionRepository;
-        private readonly IRepository<Feed> _feedRepository;
-        private readonly IRepository<CollectionFeed> _collectionFeedRepository;
+        private readonly IFeedServiceUoW _db;
 
-        public CollectionsController(IRepository<Collection> collectionRepository, IRepository<Feed> feedRepository, IRepository<CollectionFeed> collectionFeedRepository)
+        public CollectionsController(IFeedServiceUoW db)
         {
-            _collectionRepository = collectionRepository;
-            _feedRepository = feedRepository;
-            _collectionFeedRepository = collectionFeedRepository;
+            _db = db;
         }
 
         // GET: api/Collections
         [HttpGet]
         public IEnumerable<Collection> GetCollections()
         {
-            return _collectionRepository.GetAll();
+            return _db.Collections.GetAll();
         }
 
         // GET: api/Collections/5
@@ -43,7 +39,7 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
-            var collection = await _collectionRepository.GetAll().SingleOrDefaultAsync(m => m.Id == id);
+            var collection = await _db.Collections.GetAll().SingleOrDefaultAsync(m => m.Id == id);
 
             if (collection == null)
             {
@@ -67,11 +63,11 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Collection ids doesn't match" });
             }
 
-            _collectionRepository.Edit(collection);
+            _db.Collections.Edit(collection);
 
             try
             {
-                await _collectionRepository.SaveAsync();
+                await _db.Collections.SaveAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -97,29 +93,29 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid requst parameters", ModelState = ModelState });
             }
 
-            Collection col = await _collectionRepository.GetAll().FirstOrDefaultAsync(c =>  c.Id == id);
+            Collection col = await _db.Collections.GetAll().FirstOrDefaultAsync(c =>  c.Id == id);
 
             if (col == null)
             {
                 return BadRequest(new { Error = "There is no collection with such id" });
             }
 
-            Feed _feed = await _feedRepository.GetAll().FirstOrDefaultAsync(f => f.Url == feed.Url);
+            Feed _feed = await _db.Feeds.GetAll().FirstOrDefaultAsync(f => f.Url == feed.Url);
 
             if (_feed == null)
             {
                 col.CollectionFeeds.Add(new CollectionFeed { Feed = feed, Collection = col });
-                _collectionRepository.Edit(col);
+                _db.Collections.Edit(col);
             }
             else
             {
                 col.CollectionFeeds.Add(new CollectionFeed { Feed = _feed, Collection = col });
-                _collectionRepository.Edit(col);
+                _db.Collections.Edit(col);
             }
 
             try
             {
-                await _collectionRepository.SaveAsync();
+                await _db.Collections.SaveAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -145,8 +141,8 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid reques parameters", ModelState = ModelState });
             }
 
-            await _collectionRepository.AddAsync(collection);
-            await _collectionRepository.SaveAsync();
+            await _db.Collections.AddAsync(collection);
+            await _db.Collections.SaveAsync();
 
             return CreatedAtAction("GetCollection", new { id = collection.Id }, collection);
         }
@@ -160,26 +156,26 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
-            var collection = await _collectionRepository.GetAll().SingleOrDefaultAsync(m => m.Id == id);
+            var collection = await _db.Collections.GetAll().SingleOrDefaultAsync(m => m.Id == id);
             if (collection == null)
             {
                 return NotFound(new { Error = "There is no such collection" });
             }
 
-            _collectionRepository.Delete(collection);
-            await _collectionRepository.SaveAsync();
+            _db.Collections.Delete(collection);
+            await _db.Collections.SaveAsync();
 
             return Ok(collection);
         }
 
         private bool CollectionExists(int id)
         {
-            return _collectionRepository.GetAll().Any(e => e.Id == id);
+            return _db.Collections.GetAll().Any(e => e.Id == id);
         }
 
         private bool FeedExists(int id)
         {
-            return _feedRepository.GetAll().Any(e => e.Id == id);
+            return _db.Feeds.GetAll().Any(e => e.Id == id);
         }
     }
 }

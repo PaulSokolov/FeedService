@@ -23,15 +23,17 @@ namespace FeedService.Tests
         [Fact]
         public async Task RegisterExistingUser_BadRequest()
         {
-            var mock = new Mock<IRepository<User>>();
-            mock.Setup(ur => ur.AddAsync(It.IsAny<User>()));
-            mock.Setup(ur => ur.SaveAsync());
+            var userRepository = new Mock<IRepository<User>>();
+            userRepository.Setup(ur => ur.AddAsync(It.IsAny<User>()));
+            userRepository.Setup(ur => ur.SaveAsync());
+            userRepository.Setup(r => r.GetAll()).Returns(GetAllUsers());
+            var feedServiceUnit = new Mock<IFeedServiceUoW>();
+            feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
             var response = new Mock<HttpResponse>();
             
             
-            mock.Setup(r => r.GetAll()).Returns(GetAllUsers());
             // Arrange
-            AccountController controller = new AccountController(mock.Object);
+            AccountController controller = new AccountController(feedServiceUnit.Object);
             User user = new User { Login = "Paul", Password = "password" };
             // Act
             var actionRes = controller.Register(user).GetAwaiter().GetResult();
@@ -49,8 +51,11 @@ namespace FeedService.Tests
             var userRepository = new Mock<IRepository<User>>();
             var response = new Mock<HttpResponse>();
             userRepository.Setup(r => r.GetAll()).Returns(GetAllUsers());
+
+            var feedServiceUnit = new Mock<IFeedServiceUoW>();
+            feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
             // Arrange
-            AccountController controller = new AccountController(userRepository.Object);
+            AccountController controller = new AccountController(feedServiceUnit.Object);
             User user = new User { Login = "Petya", Password = "password" };
             // Act
             var actionRes = controller.Register(user).GetAwaiter().GetResult();
@@ -67,19 +72,22 @@ namespace FeedService.Tests
             User user = new User { Login = "Paul", Password = "password" };
 
             var httpContext = new Mock<HttpContext>();
-            //var formCollectionMock = new Mock<IFormCollection>();
             var formCollection = new Dictionary<string, StringValues>();
-
             formCollection.Add("username", $"{user.Login}");
             formCollection.Add("password", $"{user.Password}");
             FormCollection col = new FormCollection(formCollection);
+
             httpContext.SetupGet(hc => hc.Request.Form).Returns(col);
 
             var userRepository = new Mock<IRepository<User>>();
-            var response = new Mock<HttpResponse>();
             userRepository.Setup(r => r.GetAll()).Returns(GetAllUsers());
+
+            var feedServiceUnit = new Mock<IFeedServiceUoW>();
+            feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
+
+            var response = new Mock<HttpResponse>();
             // Arrange
-            AccountController controller = new AccountController(userRepository.Object);
+            AccountController controller = new AccountController(feedServiceUnit.Object);
             controller.ControllerContext = new ControllerContext()
             {
                 HttpContext = httpContext.Object

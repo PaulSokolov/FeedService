@@ -17,14 +17,12 @@ namespace FeedService.Controllers
     [Route("api/[controller]")]
     public class FeedServiceController : Controller
     {
-        IRepository<Collection> _collectionRepository;
-        IRepository<Feed> _feedRepository;
+        IFeedServiceUoW _db;
         IMemoryCache _cache;
 
-        public FeedServiceController(IRepository<Collection> collectionRepository, IRepository<Feed> feedRepository, IMemoryCache cache)
+        public FeedServiceController(IFeedServiceUoW db, IMemoryCache cache)
         {
-            _collectionRepository = collectionRepository;
-            _feedRepository = feedRepository;
+            _db = db;
             _cache = cache;
         }
         
@@ -37,8 +35,8 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
-            var collection =  _collectionRepository.GetAll().Include(c=>c.CollectionFeeds).FirstOrDefault(m => m.Id == id);
-            _feedRepository.GetAll().Where(f => f.Id == collection.CollectionFeeds.First(cf => cf.FeedId == f.Id).FeedId).Load();
+            var collection =  _db.Collections.GetAll().Include(c=>c.CollectionFeeds).FirstOrDefault(m => m.Id == id);
+            _db.Feeds.GetAll().Where(f => f.Id == collection.CollectionFeeds.First(cf => cf.FeedId == f.Id).FeedId).Load();
             if (collection == null)
             {
                 return NotFound(new { Error = "There is no collection with such id" });

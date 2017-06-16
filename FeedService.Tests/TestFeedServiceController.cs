@@ -23,12 +23,16 @@ namespace FeedService.Tests
             collectionRepository.Setup(r => r.GetAll()).Returns(GetAllCollections());
             var feedRepository = new Mock<IRepository<Feed>>();
             feedRepository.Setup(r => r.GetAll()).Returns(new List<Feed> { new Feed { Type = FeedType.RSS, Url = ""  } }.AsQueryable());
-            
+
+            var feedServiceUnit = new Mock<IFeedServiceUoW>();
+            feedServiceUnit.SetupGet(fsu => fsu.Feeds).Returns(feedRepository.Object);
+            feedServiceUnit.SetupGet(fsu => fsu.Collections).Returns(collectionRepository.Object);
+
             var cache = new Mock<IMemoryCache>();
             var cacheEntry = new Mock<ICacheEntry>();
             cache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(cacheEntry.Object);
 
-            FeedServiceController controller = new FeedServiceController(collectionRepository.Object, feedRepository.Object, cache.Object);
+            FeedServiceController controller = new FeedServiceController(feedServiceUnit.Object, cache.Object);
             var actionRes = controller.Get(1).GetAwaiter().GetResult();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
             Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
