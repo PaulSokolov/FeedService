@@ -17,6 +17,14 @@ namespace FeedService.Models
         public string PublishedDate { get; set; }
         public IEnumerable<IFeedItem> Items { get; set; }
 
+        public RdfFeedReader()
+        {
+            Url = String.Empty;
+            Title = String.Empty;
+            Description = String.Empty;
+            Items = new List<IFeedItem>();
+        }
+
         public IEnumerable<IFeedItem> ReadFeed(string url)
         {
             try
@@ -35,6 +43,8 @@ namespace FeedService.Models
                                   PublishedDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "date").Value),
                                   Title = item.Elements().First(i => i.Name.LocalName == "title").Value
                               };
+                Items = entries;
+                Url = url;
                 return entries.ToList();
             }
             catch

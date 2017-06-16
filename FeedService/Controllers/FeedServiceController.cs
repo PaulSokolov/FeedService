@@ -48,7 +48,7 @@ namespace FeedService.Controllers
             _feedRepository.GetAll().Where(f => f.Id == collection.CollectionFeeds.First(cf => cf.FeedId == f.Id).FeedId).Load();
             if (collection == null)
             {
-                return NotFound();
+                return NotFound(new { Error = "There is no collection with such id" });
             }
 
             List<IFeedItem> news = new List<IFeedItem>();
@@ -56,29 +56,15 @@ namespace FeedService.Controllers
             foreach (var feed in collection.CollectionFeeds.Select(cf=>cf.Feed))
             {
                 IFeedReader reader = FeedsReaderFactory.CreateReader(feed.Type);
-
-                news.AddRange(reader.ReadFeed(feed.Url));
-                //CacheFeed(reader);
-            }
-
-            //FeedsReaderFactory.CacheNews(_cache);
-                /*new List<IFeedItem>();
-
-            foreach(var feed in collection.Feeds)
-            {
-                IFeedReader reader;
-                switch (feed.Type)
+                if (IsInCache(feed.Url))
                 {
-                    case FeedType.Atom:
-                        reader = new AtomFeedReader();
-                        news.AddRange(reader.ReadFeed(feed.Url));
-                        break;
-                    case FeedType.Rss:
-                        reader = new RssFeedReader();
-                        news.AddRange(reader.ReadFeed(feed.Url));
-                        break;
+                    news.AddRange(reader.ReadFeed(feed.Url));
+                    CacheFeed(reader);
                 }
-            }*/
+                else
+                    news.AddRange(GetFromCache(feed.Url));
+
+            }
 
             return Ok(news);
         }
@@ -101,11 +87,25 @@ namespace FeedService.Controllers
         {
         }
 
+        private IEnumerable<IFeedItem> GetFromCache(string url)
+        {
+            IFeed tmp;
+            _cache.TryGetValue(url, out tmp);
+
+            return tmp.Items;
+        } 
+
+        private bool IsInCache(string url)
+        {
+            IFeed tmp;
+            return !_cache.TryGetValue(url, out tmp);
+        }
+
         private void CacheFeed(IFeed feed)
         {
             IFeed tmp;
             if (!_cache.TryGetValue(feed.Url, out tmp))
-                _cache.Set(feed.Url, feed, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+                _cache.Set(feed.Url, (IFeedReader)feed, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
         }
     }
 }

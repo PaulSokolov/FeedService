@@ -9,7 +9,6 @@ namespace FeedService.DbModels
     {
         RSS,
         RDF,
-        Atom,
-        
+        Atom        
     }
 }

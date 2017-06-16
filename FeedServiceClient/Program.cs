@@ -22,9 +22,22 @@ namespace FeedServiceClient
                 Console.WriteLine("Password: ");
                 password = Console.ReadLine();
             }
-            while (!user.Authorize(login, "pass").GetAwaiter().GetResult());
+            while (!user.Authorize(login, password).GetAwaiter().GetResult());
 
+            foreach (var col in user.GetCollections().GetAwaiter().GetResult())
+            {
+                Console.WriteLine(col);
+            }
+            Console.Write("Choose collection: ");
+            var answer = Console.ReadLine();
+            int colId = int.Parse(answer.ToString());
 
+            Console.WriteLine("News\n\n");
+            foreach (var col in user.ReadNewsFromCollection(colId).GetAwaiter().GetResult())
+            {
+                Console.WriteLine(col);
+            }
+            // user.AddFeedToCollection("");
         }
     }
 }

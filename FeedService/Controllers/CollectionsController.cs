@@ -47,7 +47,7 @@ namespace FeedService.Controllers
 
             if (collection == null)
             {
-                return NotFound();
+                return NotFound(new { Error = "There is no such collection." });
             }
 
             return Ok(collection);
@@ -85,7 +85,7 @@ namespace FeedService.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok("Collection edited successfully");
         }
 
         [Route("/AddToCollection/{id}")]
@@ -101,7 +101,7 @@ namespace FeedService.Controllers
 
             if (col == null)
             {
-                return BadRequest();
+                return BadRequest(new { Error = "There is no collection with such id" });
             }
 
             Feed _feed = await _feedRepository.GetAll().FirstOrDefaultAsync(f => f.Url == feed.Url);
@@ -125,7 +125,7 @@ namespace FeedService.Controllers
             {
                 if (!FeedExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { Error = "There is no such feed" });
                 }
                 else
                 {
@@ -133,7 +133,7 @@ namespace FeedService.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok("Feed added to collection successfully");
         }
 
         // POST: api/Collections
@@ -163,7 +163,7 @@ namespace FeedService.Controllers
             var collection = await _collectionRepository.GetAll().SingleOrDefaultAsync(m => m.Id == id);
             if (collection == null)
             {
-                return NotFound();
+                return NotFound(new { Error = "There is no such collection" });
             }
 
             _collectionRepository.Delete(collection);
