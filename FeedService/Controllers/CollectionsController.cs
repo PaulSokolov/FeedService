@@ -25,9 +25,9 @@ namespace FeedService.Controllers
 
         // GET: api/Collections
         [HttpGet]
-        public IEnumerable<Collection> GetCollections()
+        public async Task<IEnumerable<Collection>> GetCollections()
         {
-            return _db.Collections.GetAll();
+            return (IEnumerable<Collection>)(await _db.Users.GetAll().Where(u => u.Login == User.Identity.Name).Select(u => u.Collections).ToListAsync());
         }
 
         // GET: api/Collections/5
@@ -39,7 +39,7 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
-            var collection = await _db.Collections.GetAll().SingleOrDefaultAsync(m => m.Id == id);
+            var collection = await _db.Collections.GetAll().SingleOrDefaultAsync(m => m.Id == id && m.User.Login == User.Identity.Name);
 
             if (collection == null)
             {
@@ -93,7 +93,7 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid requst parameters", ModelState = ModelState });
             }
 
-            Collection col = await _db.Collections.GetAll().FirstOrDefaultAsync(c =>  c.Id == id);
+            Collection col = await _db.Collections.GetAll().FirstOrDefaultAsync(c =>  c.Id == id && c.User.Login == User.Identity.Name);
 
             if (col == null)
             {
@@ -140,8 +140,10 @@ namespace FeedService.Controllers
             {
                 return BadRequest(new { Error = "Invalid reques parameters", ModelState = ModelState });
             }
-
-            await _db.Collections.AddAsync(collection);
+            var user = await _db.Users.GetAll().FirstOrDefaultAsync(u => u.Login == User.Identity.Name);
+            user.Collections.Add(collection);
+            _db.Users.Edit(user);
+            //await _db.Collections.AddAsync(collection);
             await _db.Collections.SaveAsync();
 
             return CreatedAtAction("GetCollection", new { id = collection.Id }, collection);
@@ -156,7 +158,7 @@ namespace FeedService.Controllers
                 return BadRequest(new { Error = "Invalid request parameters", ModelState = ModelState });
             }
 
-            var collection = await _db.Collections.GetAll().SingleOrDefaultAsync(m => m.Id == id);
+            var collection = await _db.Collections.GetAll().SingleOrDefaultAsync(m => m.Id == id && m.User.Login == User.Identity.Name);
             if (collection == null)
             {
                 return NotFound(new { Error = "There is no such collection" });
