@@ -8,9 +8,10 @@ using FeedService.DbModels;
 namespace FeedService.Migrations
 {
     [DbContext(typeof(FeedServiceContext))]
-    partial class FeedServiceContextModelSnapshot : ModelSnapshot
+    [Migration("20170617091516_RequiredFieldsAdded")]
+    partial class RequiredFieldsAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2")

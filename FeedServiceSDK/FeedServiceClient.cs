@@ -11,8 +11,32 @@ using System.Threading.Tasks;
 
 namespace FeedServiceSDK
 {
+    public class SuccessEventArgs:EventArgs
+    {
+        public string Message { get; set; }
+    }
+
+    public class ErrorEventArgs : EventArgs
+    {
+        public IEnumerable<string> Errors { get; set; }
+    }
+
     public class FeedServiceClient
     {
+        public event EventHandler FeedServiceSuccessMessage;
+
+        protected virtual void OnFeedServiceSuccessMessage(SuccessEventArgs e)
+        {
+            FeedServiceSuccessMessage?.Invoke(this, e);
+        }
+
+        public event EventHandler ExternalResourceErrors;
+
+        protected virtual void OnExternalResourceErrors(ErrorEventArgs e)
+        {
+            ExternalResourceErrors?.Invoke(this, e);
+        }
+
         private const string SERVER_NAME = "http://localhost:60840";
         private HttpClient client = new HttpClient();
         private string _token;
@@ -28,21 +52,35 @@ namespace FeedServiceSDK
                 });
             var response = await client.PostAsync(requestUri, content);
             var respContent = await response.Content.ReadAsStringAsync();
-            if (respContent.Contains("Invalid username or password."))
-                return false;
-            if (respContent.Contains("access_token"))
+            var jObject = JObject.Parse(respContent);
+            JToken value;
+            if(jObject.TryGetValue("error", out value))
+                throw new FeedServiceException(value.ToString());
+
+            if (jObject.TryGetValue("success", out value))
             {
-                JObject jObject = JObject.Parse(respContent);
-                _token = jObject["access_token"].ToString();
-                return true;
+                OnFeedServiceSuccessMessage(new SuccessEventArgs { Message = value.ToString() });
+               
+                if (jObject.TryGetValue("result", out value))
+                {
+                    var result = value as JObject;
+                    if (result.TryGetValue("access_token", out value))
+                    {
+                        _token = value.ToString();
+                        return true;
+                    }
+
+                    return false;
+                }
             }
-            return false;
+
+            throw new FeedServiceException("Unknown error.");
         }
 
         public async Task<string> Register(string login, string password)
         {
 
-            var content = JsonConvert.SerializeObject(new { Name = login, Password = password });
+            var content = JsonConvert.SerializeObject(new { Login = login, Password = password, Role = "user" });
             var request = new HttpRequestMessage
             {
                 RequestUri = new Uri(SERVER_NAME + "/register"),
@@ -56,11 +94,16 @@ namespace FeedServiceSDK
 
             JObject jObject = JObject.Parse(respContent);
             JToken value;
+            if (jObject.TryGetValue("success", out value))
+            {
+                OnFeedServiceSuccessMessage(new SuccessEventArgs { Message = value.ToString() });
+                return value.ToString();
+            }
+
             if (jObject.TryGetValue("error", out value))
                 throw new FeedServiceException(value.ToString());
 
-            if (jObject.TryGetValue("success", out value))
-                return value.ToString();
+            
 
             throw new FeedServiceException("Unknown exception");
                 
@@ -74,7 +117,7 @@ namespace FeedServiceSDK
             var content = JsonConvert.SerializeObject(new { Name = name });
             var request = new HttpRequestMessage
             {
-                RequestUri = new Uri(SERVER_NAME + "api/Collections"),
+                RequestUri = new Uri(SERVER_NAME + "/Collections"),
                 Method = HttpMethod.Post,
                 Content = new StringContent(content.ToString(), Encoding.UTF8, "application/json")
             };
@@ -89,8 +132,15 @@ namespace FeedServiceSDK
             if (jObject.TryGetValue("error", out value))
                 throw new CreateCollectionException(value.ToString());
 
-            var id = jObject["id"].ToString();
-            return int.Parse(id);
+            if (jObject.TryGetValue("success", out value))
+            {
+                OnFeedServiceSuccessMessage(new SuccessEventArgs { Message = value.ToString() });
+                if (jObject.TryGetValue("result", out value))
+                    return value.ToObject<Collection>().Id;
+            }
+
+            throw new FeedServiceException("Unknow error.");
+            
         }
 
         public async Task<List<Collection>> GetCollections()
@@ -100,16 +150,26 @@ namespace FeedServiceSDK
 
             var request = new HttpRequestMessage
             {
-                RequestUri = new Uri(SERVER_NAME + $"/api/Collections"),
+                RequestUri = new Uri(SERVER_NAME + $"/Collections"),
                 Method = HttpMethod.Get
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
 
             var response = await client.SendAsync(request);
             var respContent = await response.Content.ReadAsStringAsync();
-            var col = JsonConvert.DeserializeObject<List<Collection>>(respContent);
+            JObject jObject = JObject.Parse(respContent);
 
-            return col;
+            if (jObject.TryGetValue("error", out JToken value))
+                throw new FeedServiceException(value.ToString());
+
+            if(jObject.TryGetValue("success", out value))
+            {
+                OnFeedServiceSuccessMessage(new SuccessEventArgs { Message = value.ToString() });
+                if (jObject.TryGetValue("result", out value))
+                    return value.ToObject<List<Collection>>();
+            }
+
+            throw new FeedServiceException("Unknown error");
         }
 
         public async Task<string> AddFeedToCollection(int collectionId, FeedType type, string url)
@@ -120,7 +180,7 @@ namespace FeedServiceSDK
             var content = JsonConvert.SerializeObject(new { Url = url, Type = type });
             var request = new HttpRequestMessage
             {
-                RequestUri = new Uri(SERVER_NAME + $"/AddToCollection/{collectionId}"),
+                RequestUri = new Uri(SERVER_NAME + $"/AddFeed/{collectionId}"),
                 Method = HttpMethod.Put,
                 Content = new StringContent(content.ToString(), Encoding.UTF8, "application/json")
             };
@@ -137,7 +197,7 @@ namespace FeedServiceSDK
             if (jObject.TryGetValue("success", out value))
                 return value.ToString();
 
-            throw new FeedServiceException("Unknown exception.");
+            throw new FeedServiceException("Unknown error.");
         }
 
         public async Task<List<FeedItem>> ReadNewsFromCollection(int collectionId)
@@ -154,9 +214,24 @@ namespace FeedServiceSDK
 
             var response = await client.SendAsync(request);
             var respContent = await response.Content.ReadAsStringAsync();
-            var news = JsonConvert.DeserializeObject<List<FeedItem>>(respContent);
 
-            return news;
+            JObject jObject = JObject.Parse(respContent);
+            if (jObject.TryGetValue("error", out JToken value))
+                throw new FeedServiceException(value.ToString());
+            if(jObject.TryGetValue("success", out value))
+            {
+                OnFeedServiceSuccessMessage(new SuccessEventArgs { Message = value.ToString() });
+                if (jObject.TryGetValue("result", out value))
+                {
+                    var result = value as JObject;
+                    if (result.TryGetValue("errors", out JToken errors))
+                        OnExternalResourceErrors(new ErrorEventArgs { Errors = errors.ToObject<List<string>>() });
+                    if (result.TryGetValue("news", out JToken news))
+                        return news.ToObject<List<FeedItem>>();
+                }
+            }
+
+            throw new FeedServiceException("Unknown error");
         }
     }
 

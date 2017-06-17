@@ -3,6 +3,7 @@ using FeedService.DbModels;
 using FeedService.DbModels.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Moq;
 using Newtonsoft.Json;
@@ -29,11 +30,10 @@ namespace FeedService.Tests
             userRepository.Setup(r => r.GetAll()).Returns(GetAllUsers());
             var feedServiceUnit = new Mock<IFeedServiceUoW>();
             feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
-            var response = new Mock<HttpResponse>();
-            
+            var logger = new Mock<ILogger<AccountController>>();
             
             // Arrange
-            AccountController controller = new AccountController(feedServiceUnit.Object);
+            AccountController controller = new AccountController(feedServiceUnit.Object, logger.Object);
             User user = new User { Login = "Paul", Password = "password" };
             // Act
             var actionRes = controller.Register(user).GetAwaiter().GetResult();
@@ -54,8 +54,10 @@ namespace FeedService.Tests
 
             var feedServiceUnit = new Mock<IFeedServiceUoW>();
             feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
+
+            var logger = new Mock<ILogger<AccountController>>();
             // Arrange
-            AccountController controller = new AccountController(feedServiceUnit.Object);
+            AccountController controller = new AccountController(feedServiceUnit.Object, logger.Object);
             User user = new User { Login = "Petya", Password = "password" };
             // Act
             var actionRes = controller.Register(user).GetAwaiter().GetResult();
@@ -85,9 +87,9 @@ namespace FeedService.Tests
             var feedServiceUnit = new Mock<IFeedServiceUoW>();
             feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
 
-            var response = new Mock<HttpResponse>();
+            var logger = new Mock<ILogger<AccountController>>();
             // Arrange
-            AccountController controller = new AccountController(feedServiceUnit.Object);
+            AccountController controller = new AccountController(feedServiceUnit.Object, logger.Object);
             controller.ControllerContext = new ControllerContext()
             {
                 HttpContext = httpContext.Object

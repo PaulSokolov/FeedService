@@ -4,6 +4,7 @@ using FeedService.DbModels.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,9 @@ namespace FeedService.Tests
             var cacheEntry = new Mock<ICacheEntry>();
             cache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(cacheEntry.Object);
 
-            FeedServiceController controller = new FeedServiceController(feedServiceUnit.Object, cache.Object);
+            var logger = new Mock<ILogger<FeedServiceController>>();
+
+            FeedServiceController controller = new FeedServiceController(feedServiceUnit.Object, cache.Object, logger.Object);
             var actionRes = controller.Get(1).GetAwaiter().GetResult();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
             Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);

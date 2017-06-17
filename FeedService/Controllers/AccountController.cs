@@ -8,6 +8,9 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using FeedService.DbModels;
 using FeedService.DbModels.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+using FeedService.Infrastructure;
 
 namespace FeedService.Controllers
 {
@@ -16,10 +19,12 @@ namespace FeedService.Controllers
     public class AccountController : Controller
     {
         IFeedServiceUoW _db;
+        ILogger _logger;
 
-        public AccountController(IFeedServiceUoW db)
+        public AccountController(IFeedServiceUoW db, ILogger<AccountController> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
         [HttpPost("/register")]
@@ -27,34 +32,58 @@ namespace FeedService.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { Error = "Invalid request parameters"});
+                return BadRequest(new ErrorObject(ErrorMessages.BAD_REQUEST_ERROR));
             }
 
             User tempUser = _db.Users.GetAll().SingleOrDefault(u => u.Login == user.Login);
+
             if(tempUser != null)
             {
-                return BadRequest(new { Error = "User with such login already exists" });
+                return BadRequest(new ErrorObject(ErrorMessages.USER_ALREADY_EXISTS_ERROR));
             }
+
             if(user.Password.Length < 6)
             {
-                return BadRequest( new { Error = "Password should be at least 6 symbols" });
+                return BadRequest(new ErrorObject(ErrorMessages.WRONG_PASSWORD_LENGTH));
             }
-            await _db.Users.AddAsync(user);
-            await _db.Users.SaveAsync();
 
-            return Ok(new { Success = $"User {user.Login} registered successfully" });
+            try
+            {
+                await _db.Users.AddAsync(user);
+                await _db.Users.SaveAsync();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(new EventId(1), ex, "{0} ERROR: {1}", DateTime.Now, ex.Message);
+                return BadRequest(new { Error = "Server error. Try later." });
+            }
+
+            return Ok(new SuccessObject($"User {user.Login} " + SuccessMessages.REGISTRATION_SUCCESS));
         }
 
         [HttpPost("/token")]
         public async Task<IActionResult> Token()
         {
-            var username = Request.Form["username"];
-            var password = Request.Form["password"];
+            StringValues username = default(StringValues);
+            StringValues password = default(StringValues);
+            ClaimsIdentity identity = null;
 
-            var identity = GetIdentity(username, password);
+            try
+            {
+                username = Request.Form["username"];
+                password = Request.Form["password"];
+
+                identity = GetIdentity(username, password);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(new EventId(1), ex, "{0} ERROR: {1}", DateTime.Now, ex.Message);
+                return BadRequest(new { Error = "Server error. Try later." });
+            }
+
             if (identity == null)
             {
-                return BadRequest(new { Error = "Invalid username or password." });
+                return Ok(new SuccessObject(ErrorMessages.INVALID_USERNAME_OR_PASSWORD_ERROR));
             }
 
             var now = DateTime.UtcNow;
@@ -75,12 +104,14 @@ namespace FeedService.Controllers
             };
 
 
-            return Ok(response);
+            return Ok(new SuccessObject { Result = response });
         }
 
         private ClaimsIdentity GetIdentity(string username, string password)
         {
             User person = _db.Users.GetAll().FirstOrDefault(x => x.Login == username && x.Password == password);
+         
+
             if (person != null)
             {
                 var claims = new List<Claim>

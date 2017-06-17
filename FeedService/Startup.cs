@@ -33,7 +33,8 @@ namespace FeedService
                 options.UseSqlServer(connection));
             services.AddMemoryCache();
             // Add framework services.
-            services.AddMvc();
+            services.AddMvc().
+                AddJsonOptions(options=> options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddSingleton<IRepository<User>, Repository<User, FeedServiceContext>>();
             services.AddSingleton<IRepository<Collection>, Repository<Collection, FeedServiceContext>>();
             services.AddSingleton<IRepository<Feed>, Repository<Feed, FeedServiceContext>>();
