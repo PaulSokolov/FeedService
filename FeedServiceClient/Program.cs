@@ -30,7 +30,7 @@ namespace FeedServiceClient
                     case 1:
                         do
                         {
-                            Console.WriteLine("Registration");
+                            Console.WriteLine("Sign in");
                             Console.WriteLine("Login: ");
                             login = Console.ReadLine();
 
@@ -42,7 +42,7 @@ namespace FeedServiceClient
                     case 2:
                         while (!flag)
                         {
-                            Console.WriteLine("Sign in");
+                            Console.WriteLine("Registration");
                             Console.WriteLine("Login: ");
                             login = Console.ReadLine();
 
@@ -92,8 +92,11 @@ namespace FeedServiceClient
 
                             if (int.TryParse(typedString, out collectionId))
                             {
-                                var result = user.ReadNewsFromCollection(collectionId);
-                                Console.WriteLine(result);
+                                var result = user.ReadNewsFromCollection(collectionId).GetAwaiter().GetResult();
+                                foreach (var item in result)
+                                {
+                                    Console.WriteLine(item);
+                                }
                                 flag = true;
                             }
                             else
@@ -129,7 +132,7 @@ namespace FeedServiceClient
                         break;
                 }
 
-            
+            Console.ReadLine();
         }
     }
 }

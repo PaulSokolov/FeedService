@@ -25,9 +25,10 @@ namespace FeedService.Controllers
 
         // GET: api/Collections
         [HttpGet]
-        public async Task<IEnumerable<Collection>> GetCollections()
+        public async Task<IActionResult> GetCollections()
         {
-            return (IEnumerable<Collection>)(await _db.Users.GetAll().Where(u => u.Login == User.Identity.Name).Select(u => u.Collections).ToListAsync());
+            var col = (await _db.Collections.GetAll().Include(u => u.User).Where(u => u.User.Login == User.Identity.Name).ToListAsync());
+            return Ok(col);
         }
 
         // GET: api/Collections/5
