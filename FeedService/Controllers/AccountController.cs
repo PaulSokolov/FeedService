@@ -62,7 +62,7 @@ namespace FeedService.Controllers
         }
 
         [HttpPost("/token")]
-        public async Task<IActionResult> Token()
+        public  IActionResult Token()
         {
             StringValues username = default(StringValues);
             StringValues password = default(StringValues);

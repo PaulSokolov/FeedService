@@ -12,7 +12,6 @@ using FeedService.Infrastructure.Response;
 namespace FeedService.Controllers
 {
     [Authorize]
-    //[Produces("application/json")]
     [Route("Collections")]
     public class CollectionsController : Controller
     {

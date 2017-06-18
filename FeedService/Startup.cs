@@ -30,7 +30,7 @@ namespace FeedService
         public void ConfigureServices(IServiceCollection services)
         {
             string connection = Configuration.GetConnectionString("DefaultConnection");
-            // добавляем контекст MobileContext в качестве сервиса в приложение
+
             services.AddDbContext<FeedServiceContext>(options =>
                 options.UseSqlServer(connection));
             services.AddMemoryCache();
@@ -64,24 +64,15 @@ namespace FeedService
                 AutomaticChallenge = true,
                 TokenValidationParameters = new TokenValidationParameters
                 {
-                    // укзывает, будет ли валидироваться издатель при валидации токена
                     ValidateIssuer = true,
-                    // строка, представляющая издателя
                     ValidIssuer = AuthOptions.ISSUER,
-
-                    // будет ли валидироваться потребитель токена
+                    
                     ValidateAudience = true,
-                    // установка потребителя токена
                     ValidAudience = AuthOptions.AUDIENCE,
-                    // будет ли валидироваться время существования
                     ValidateLifetime = true,
-
-                    // установка ключа безопасности
+                    
                     IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
-                    // валидация ключа безопасности
-                    ValidateIssuerSigningKey = true,
-
-                    //ClockSkew = TimeSpan.Zero
+                    ValidateIssuerSigningKey = true
                 }
             });
 

@@ -23,7 +23,7 @@ namespace FeedService.Tests
     public class TestAccountController
     {
         [Fact]
-        public async Task RegisterExistingUser_BadRequest()
+        public void  RegisterExistingUser_BadRequest()
         {
             var userRepository = new Mock<IRepository<User>>();
             userRepository.Setup(ur => ur.AddAsync(It.IsAny<User>()));
@@ -47,7 +47,7 @@ namespace FeedService.Tests
         }
 
         [Fact]
-        public async Task RegisterNewUser_Success()
+        public void RegisterNewUser_Success()
         {
             var userRepository = new Mock<IRepository<User>>();
             var response = new Mock<HttpResponse>();
@@ -70,7 +70,7 @@ namespace FeedService.Tests
         }
 
         [Fact]
-        public async Task Login_Success()
+        public void Login_Success()
         {
             User user = new User { Login = "Paul", Password = "password" };
 
@@ -97,7 +97,7 @@ namespace FeedService.Tests
             };
            
             // Act
-            var actionRes = controller.Token().GetAwaiter().GetResult();
+            var actionRes = controller.Token();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
 
             // Assert
