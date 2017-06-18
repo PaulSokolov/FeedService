@@ -1,6 +1,7 @@
 using FeedService.Controllers;
 using FeedService.DbModels;
 using FeedService.DbModels.Interfaces;
+using FeedService.Infrastructure.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -65,7 +66,7 @@ namespace FeedService.Tests
 
             // Assert
             Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
-            Assert.Equal($"User {user.Login} registered successfully", JObject.FromObject(redirectToActionResult.Value)["Success"]);
+            Assert.Equal($"User {user.Login} " + SuccessMessages.REGISTRATION_SUCCESS, JObject.FromObject(redirectToActionResult.Value)["Success"]);
         }
 
         [Fact]
@@ -101,7 +102,8 @@ namespace FeedService.Tests
 
             // Assert
             Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
-            Assert.True(JObject.FromObject(redirectToActionResult.Value).TryGetValue("access_token", out JToken i));
+            Assert.True(JObject.FromObject(redirectToActionResult.Value).TryGetValue("Result", out JToken i));
+            Assert.True(((JObject)i).TryGetValue("access_token", out i));
         }
 
         private IQueryable<User> GetAllUsers()

@@ -7,7 +7,7 @@ using FeedService.DbModels;
 using Microsoft.AspNetCore.Authorization;
 using FeedService.DbModels.Interfaces;
 using Microsoft.Extensions.Logging;
-using FeedService.Infrastructure;
+using FeedService.Infrastructure.Response;
 
 namespace FeedService.Controllers
 {

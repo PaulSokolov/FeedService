@@ -10,7 +10,7 @@ using FeedService.DbModels;
 using FeedService.DbModels.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using FeedService.Infrastructure;
+using FeedService.Infrastructure.Response;
 
 namespace FeedService.Controllers
 {

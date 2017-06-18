@@ -11,11 +11,9 @@ namespace FeedServiceClient
 
         static void Main(string[] args)
         {
-            object res = null;
             FeedServiceSDK.FeedServiceClient user = new FeedServiceSDK.FeedServiceClient();
-            user.FeedServiceSuccessMessage += User_FeedServiceSuccessMessage; ;
-            
-            Console.ReadKey();
+            user.FeedServiceSuccessMessage += User_FeedServiceSuccessMessage; 
+
             string login = null;
             string password = null;
             do

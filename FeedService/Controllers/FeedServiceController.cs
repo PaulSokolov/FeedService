@@ -11,7 +11,7 @@ using FeedService.Models;
 using Microsoft.Extensions.Caching.Memory;
 using FeedService.DbModels.Interfaces;
 using Microsoft.Extensions.Logging;
-using FeedService.Infrastructure;
+using FeedService.Infrastructure.Response;
 
 namespace FeedService.Controllers
 {
