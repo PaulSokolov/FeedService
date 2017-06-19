@@ -1,6 +1,7 @@
 ﻿using FeedService.Controllers;
 using FeedService.DbModels;
 using FeedService.DbModels.Interfaces;
+using FeedService.Tests.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -49,6 +50,121 @@ namespace FeedService.Tests
             
         }
 
+        [Fact]
+        public void GetCollection_another_user_collectionId_returnsNotFound()
+        {
+
+            // Arrange
+            var collections = GetAllCollections().ToAsyncDbSetMock();
+            var collectionRepository = new Mock<IRepository<Collection>>();
+            collectionRepository.Setup(r => r.GetAll()).Returns(collections.Object);
+
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(h => h.User.Identity.Name).Returns("Paul");
+            var feedServiceUnit = new Mock<IFeedServiceUoW>();
+            feedServiceUnit.SetupGet(fsu => fsu.Collections).Returns(collectionRepository.Object);
+
+            var logger = new Mock<ILogger<CollectionsController>>();
+
+            CollectionsController controller = new CollectionsController(feedServiceUnit.Object, logger.Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext.Object
+            };
+            // Act
+            var actionRes = controller.GetCollection(3).GetAwaiter().GetResult();
+            // Assert
+            var redirectToActionResult = Assert.IsType<NotFoundObjectResult>(actionRes);
+            Assert.Equal(StatusCodes.Status404NotFound, redirectToActionResult.StatusCode);
+            //Assert.IsType(typeof(EnumerableQuery<>), redirectToActionResult.Value);
+
+        }
+
+        [Fact]
+        public void AddFeedToCollection_AddingExistingFeedToCollection_BadRequestExopected()
+        {
+
+            // Arrange
+            var collections = GetAllCollections().ToAsyncDbSetMock();
+            var feeds = GetAllFeeds().ToAsyncDbSetMock();
+            var collectionFeeds = GetAllCollectionFeeds().ToAsyncDbSetMock();
+
+            var collectionRepository = new Mock<IRepository<Collection>>();
+            collectionRepository.Setup(r => r.GetAll()).Returns(collections.Object);
+
+            var collectionFeedsRepository = new Mock<IRepository<CollectionFeed>>();
+            collectionFeedsRepository.Setup(r => r.GetAll()).Returns(collectionFeeds.Object);
+
+            var feedRepository = new Mock<IRepository<Feed>>();
+            feedRepository.Setup(r => r.GetAll()).Returns(feeds.Object);
+
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(h => h.User.Identity.Name).Returns("Paul");
+
+            var feedServiceUnit = new Mock<IFeedServiceUoW>();
+            feedServiceUnit.SetupGet(fsu => fsu.Collections).Returns(collectionRepository.Object);
+            feedServiceUnit.SetupGet(fsu => fsu.Feeds).Returns(feedRepository.Object);
+            feedServiceUnit.SetupGet(fsu => fsu.CollectionsFeeds).Returns(collectionFeedsRepository.Object);
+
+            var logger = new Mock<ILogger<CollectionsController>>();
+
+            CollectionsController controller = new CollectionsController(feedServiceUnit.Object, logger.Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext.Object
+            };
+            // Act
+            var actionRes = controller.AddFeedToCollection(1, GetAllFeeds().ToList()[0]).GetAwaiter().GetResult();
+            // Assert
+            var redirectToActionResult = Assert.IsType<BadRequestObjectResult>(actionRes);
+            Assert.Equal(StatusCodes.Status400BadRequest, redirectToActionResult.StatusCode);
+            //Assert.IsType(typeof(EnumerableQuery<>), redirectToActionResult.Value);
+
+        }
+
+        [Fact]
+        public void AddFeedToCollection_AddingNewFeedToCollection_OkResult()
+        {
+
+            // Arrange
+            var collections = GetAllCollections().ToAsyncDbSetMock();
+            var feeds = GetAllFeeds().ToAsyncDbSetMock();
+            var collectionFeeds = GetAllCollectionFeeds().ToAsyncDbSetMock();
+
+            var collectionRepository = new Mock<IRepository<Collection>>();
+            collectionRepository.Setup(r => r.GetAll()).Returns(collections.Object);
+
+            var collectionFeedsRepository = new Mock<IRepository<CollectionFeed>>();
+            collectionFeedsRepository.Setup(r => r.GetAll()).Returns(collectionFeeds.Object);
+
+            var feedRepository = new Mock<IRepository<Feed>>();
+            feedRepository.Setup(r => r.GetAll()).Returns(feeds.Object);
+
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(h => h.User.Identity.Name).Returns("Paul");
+
+            var feedServiceUnit = new Mock<IFeedServiceUoW>();
+            feedServiceUnit.SetupGet(fsu => fsu.Collections).Returns(collectionRepository.Object);
+            feedServiceUnit.SetupGet(fsu => fsu.Feeds).Returns(feedRepository.Object);
+            feedServiceUnit.SetupGet(fsu => fsu.CollectionsFeeds).Returns(collectionFeedsRepository.Object);
+
+            var logger = new Mock<ILogger<CollectionsController>>();
+
+            CollectionsController controller = new CollectionsController(feedServiceUnit.Object, logger.Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext.Object
+            };
+
+            var feed = new Feed { Id = 2, Type = FeedType.Atom, Url = "newFeed" };
+            // Act
+            var actionRes = controller.AddFeedToCollection(1, feed).GetAwaiter().GetResult();
+            // Assert
+            var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
+            Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
+
+        }
+
         private IQueryable<User> GetAllUsers()
         {
             return new List<User>
@@ -62,11 +178,31 @@ namespace FeedService.Tests
 
         private IQueryable<Collection> GetAllCollections()
         {
+            var users = GetAllUsers().ToList();
             return new List<Collection>
             {
-                new Collection { Id=1,Name = "Feed", User=new User { Id=1, Login = "Paul", Password = "password", Role="user" } },
-                 new Collection { Id=1,Name = "Col",User=new User { Id=1, Login = "Paul", Password = "password", Role="user" } },
-                  new Collection { Id=1,Name = "Pot", User= new User { Id=1, Login = "Paul", Password = "password", Role="user" } }
+                new Collection { Id=1,Name = "Feed", User=users[0]},
+                 new Collection { Id=2,Name = "Col",User=users[0]},
+                  new Collection { Id=3,Name = "Pot", User= users[1] }
+            }.AsQueryable();
+        }
+
+        private IQueryable<Feed> GetAllFeeds()
+        {
+            return new List<Feed>
+            {
+                new Feed{ Id = 1, Type = FeedType.RSS, Url="exists"}
+            }.AsQueryable();
+        }
+
+        private IQueryable<CollectionFeed> GetAllCollectionFeeds()
+        {
+            var collections = GetAllCollections().ToList();
+            var feeds = GetAllFeeds().ToList();
+
+            return new List<CollectionFeed>
+            {
+                new CollectionFeed{ CollectionId = collections[0].Id, Collection = collections[0], FeedId = feeds[0].Id, Feed = feeds[0]}
             }.AsQueryable();
         }
     }
