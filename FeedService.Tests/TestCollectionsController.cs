@@ -1,6 +1,7 @@
 ﻿using FeedService.Controllers;
 using FeedService.DbModels;
 using FeedService.DbModels.Interfaces;
+using FeedService.Infrastructure.Response;
 using FeedService.Tests.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,8 +21,8 @@ namespace FeedService.Tests
         [Fact]
         public void GetCollections_returns_3_collections_in_result()
         {
+            #region Arrange
 
-            // Arrange
             var userRepository = new Mock<IRepository<User>>();
             userRepository.Setup(r => r.GetAll()).Returns(GetAllUsers());
             var collectionRepository = new Mock<IRepository<Collection>>();
@@ -40,21 +41,32 @@ namespace FeedService.Tests
             {
                 HttpContext = httpContext.Object
             };
-            var expected = 3;
-            // Act
+            var expected = 2;
+
+            #endregion
+            #region Act
+
             var actionRes = controller.GetCollections();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
-            // Assert
+
+            #endregion
+            #region Assert
+
+            var successAnswer = Assert.IsType<SuccessObject>(redirectToActionResult.Value);
+            JArray ob = JArray.FromObject(successAnswer.Result);
             Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
-            //Assert.IsType(typeof(EnumerableQuery<>), redirectToActionResult.Value);
-            
+            Assert.Equal(expected, ob.Count); 
+
+            #endregion
+
         }
 
         [Fact]
         public void GetCollection_another_user_collectionId_returnsNotFound()
         {
 
-            // Arrange
+            #region Arrange
+
             var collections = GetAllCollections().ToAsyncDbSetMock();
             var collectionRepository = new Mock<IRepository<Collection>>();
             collectionRepository.Setup(r => r.GetAll()).Returns(collections.Object);
@@ -71,20 +83,27 @@ namespace FeedService.Tests
             {
                 HttpContext = httpContext.Object
             };
-            // Act
+
+            #endregion
+            #region Act
+
             var actionRes = controller.GetCollection(3).GetAwaiter().GetResult();
-            // Assert
+
+            #endregion
+            #region Assert
+
             var redirectToActionResult = Assert.IsType<NotFoundObjectResult>(actionRes);
-            Assert.Equal(StatusCodes.Status404NotFound, redirectToActionResult.StatusCode);
-            //Assert.IsType(typeof(EnumerableQuery<>), redirectToActionResult.Value);
+            Assert.Equal(StatusCodes.Status404NotFound, redirectToActionResult.StatusCode); 
+
+            #endregion
 
         }
 
         [Fact]
         public void AddFeedToCollection_AddingExistingFeedToCollection_BadRequestExopected()
         {
+            #region Arrange
 
-            // Arrange
             var collections = GetAllCollections().ToAsyncDbSetMock();
             var feeds = GetAllFeeds().ToAsyncDbSetMock();
             var collectionFeeds = GetAllCollectionFeeds().ToAsyncDbSetMock();
@@ -113,20 +132,27 @@ namespace FeedService.Tests
             {
                 HttpContext = httpContext.Object
             };
-            // Act
+
+            #endregion
+            #region Act
+
             var actionRes = controller.AddFeedToCollection(1, GetAllFeeds().ToList()[0]).GetAwaiter().GetResult();
-            // Assert
+
+            #endregion
+            #region Assert
+
             var redirectToActionResult = Assert.IsType<BadRequestObjectResult>(actionRes);
             Assert.Equal(StatusCodes.Status400BadRequest, redirectToActionResult.StatusCode);
-            //Assert.IsType(typeof(EnumerableQuery<>), redirectToActionResult.Value);
 
+            #endregion
         }
 
         [Fact]
         public void AddFeedToCollection_AddingNewFeedToCollection_OkResult()
         {
 
-            // Arrange
+            #region Arrange
+
             var collections = GetAllCollections().ToAsyncDbSetMock();
             var feeds = GetAllFeeds().ToAsyncDbSetMock();
             var collectionFeeds = GetAllCollectionFeeds().ToAsyncDbSetMock();
@@ -157,11 +183,19 @@ namespace FeedService.Tests
             };
 
             var feed = new Feed { Id = 2, Type = FeedType.Atom, Url = "newFeed" };
-            // Act
+
+            #endregion
+            #region Act
+
             var actionRes = controller.AddFeedToCollection(1, feed).GetAwaiter().GetResult();
-            // Assert
+
+            #endregion
+            #region Assert
+
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
-            Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
+            Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode); 
+
+            #endregion
 
         }
 

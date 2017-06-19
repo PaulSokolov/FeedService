@@ -20,6 +20,8 @@ namespace FeedService.Tests
         [Fact]
         public void GetNewsFromCollection()
         {
+            #region Arrange
+
             var collections = GetAllCollections().ToAsyncDbSetMock();
             var collectionFeeds = GetAllCollectionFeeds().ToAsyncDbSetMock();
 
@@ -50,26 +52,40 @@ namespace FeedService.Tests
                 HttpContext = httpContext.Object
             };
 
+            #endregion
+            #region Act
+
             var actionRes = controller.Get(1).GetAwaiter().GetResult();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
-            Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
-            var successAnswer = redirectToActionResult.Value as SuccessObject;
-            Assert.NotNull(successAnswer);
-            JObject ob = JObject.FromObject(successAnswer.Result);
-            Assert.True(ob.TryGetValue("News", out JToken value));
 
-            Assert.Equal(25, ((JArray)value).Count);
+            #endregion
+            #region Assert
+
+            Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
+
+            var successAnswer = redirectToActionResult.Value as SuccessObject;
+
+            Assert.NotNull(successAnswer);
+
+            JObject ob = JObject.FromObject(successAnswer.Result);
+
+            Assert.True(ob.TryGetValue("News", out JToken value));
+            Assert.Equal(25, ((JArray)value).Count); 
+
+            #endregion
         }
 
         [Fact]
         public void GetNewsFromCollection_NotSuppotedFeedOrWrongUri_BadRequest()
         {
+            #region Arrange
+
             var collections = GetAllCollections().ToAsyncDbSetMock();
             var collectionFeeds = GetAllCollectionFeeds().ToAsyncDbSetMock();
 
             var collectionRepository = new Mock<IRepository<Collection>>();
             collectionRepository.Setup(r => r.GetAll()).Returns(collections.Object);
-            
+
             var collectionFeedsRepository = new Mock<IRepository<CollectionFeed>>();
             collectionFeedsRepository.Setup(r => r.GetAll()).Returns(collectionFeeds.Object);
 
@@ -92,16 +108,27 @@ namespace FeedService.Tests
                 HttpContext = httpContext.Object
             };
 
+            #endregion
+            #region Act
+
             var actionRes = controller.Get(1).GetAwaiter().GetResult();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
 
-            Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
-            var successAnswer = redirectToActionResult.Value as SuccessObject;
-            Assert.NotNull(successAnswer);
-            JObject ob = JObject.FromObject(successAnswer.Result);
-            Assert.True(ob.TryGetValue("Errors", out JToken value));
+            #endregion
+            #region Assert
 
-            Assert.Equal(1, value.ToObject<List<string>>().Count());
+            Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
+
+            var successAnswer = redirectToActionResult.Value as SuccessObject;
+
+            Assert.NotNull(successAnswer);
+
+            JObject ob = JObject.FromObject(successAnswer.Result);
+
+            Assert.True(ob.TryGetValue("Errors", out JToken value));
+            Assert.Equal(1, value.ToObject<List<string>>().Count()); 
+
+            #endregion
         }
 
         private IQueryable<Collection> GetAllCollections()

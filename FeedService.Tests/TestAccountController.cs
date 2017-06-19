@@ -23,8 +23,10 @@ namespace FeedService.Tests
     public class TestAccountController
     {
         [Fact]
-        public void  RegisterExistingUser_BadRequest()
+        public void RegisterExistingUser_BadRequest()
         {
+            #region Arrange
+
             var userRepository = new Mock<IRepository<User>>();
             userRepository.Setup(ur => ur.AddAsync(It.IsAny<User>()));
             userRepository.Setup(ur => ur.SaveAsync());
@@ -32,23 +34,30 @@ namespace FeedService.Tests
             var feedServiceUnit = new Mock<IFeedServiceUoW>();
             feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
             var logger = new Mock<ILogger<AccountController>>();
-            
-            // Arrange
+
             AccountController controller = new AccountController(feedServiceUnit.Object, logger.Object);
             User user = new User { Login = "Paul", Password = "password" };
-            // Act
+
+            #endregion
+            #region Act
+
             var actionRes = controller.Register(user).GetAwaiter().GetResult();
             var redirectToActionResult = Assert.IsType<BadRequestObjectResult>(actionRes);
 
-            // Assert
+            #endregion
+            #region Assert
+
             Assert.Equal(StatusCodes.Status400BadRequest, redirectToActionResult.StatusCode);
             Assert.Equal("User with such login already exists", JObject.FromObject(redirectToActionResult.Value)["Error"]);
-           // Assert.
+
+            #endregion
         }
 
         [Fact]
         public void RegisterNewUser_Success()
         {
+            #region Arrange
+
             var userRepository = new Mock<IRepository<User>>();
             var response = new Mock<HttpResponse>();
             userRepository.Setup(r => r.GetAll()).Returns(GetAllUsers());
@@ -57,21 +66,30 @@ namespace FeedService.Tests
             feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
 
             var logger = new Mock<ILogger<AccountController>>();
-            // Arrange
+
             AccountController controller = new AccountController(feedServiceUnit.Object, logger.Object);
             User user = new User { Login = "Petya", Password = "password" };
-            // Act
+
+            #endregion
+            #region Act
+
             var actionRes = controller.Register(user).GetAwaiter().GetResult();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
 
-            // Assert
+            #endregion
+            #region Assert
+
             Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
             Assert.Equal($"User {user.Login} " + SuccessMessages.REGISTRATION_SUCCESS, JObject.FromObject(redirectToActionResult.Value)["Success"]);
+
+            #endregion
         }
 
         [Fact]
         public void Login_Success()
         {
+            #region Arrange
+
             User user = new User { Login = "Paul", Password = "password" };
 
             var httpContext = new Mock<HttpContext>();
@@ -89,21 +107,27 @@ namespace FeedService.Tests
             feedServiceUnit.SetupGet(fsu => fsu.Users).Returns(userRepository.Object);
 
             var logger = new Mock<ILogger<AccountController>>();
-            // Arrange
+
             AccountController controller = new AccountController(feedServiceUnit.Object, logger.Object);
             controller.ControllerContext = new ControllerContext()
             {
                 HttpContext = httpContext.Object
             };
-           
-            // Act
+
+            #endregion
+            #region Act
+
             var actionRes = controller.Token();
             var redirectToActionResult = Assert.IsType<OkObjectResult>(actionRes);
 
-            // Assert
+            #endregion
+            #region Assert
+
             Assert.Equal(StatusCodes.Status200OK, redirectToActionResult.StatusCode);
             Assert.True(JObject.FromObject(redirectToActionResult.Value).TryGetValue("Result", out JToken i));
-            Assert.True(((JObject)i).TryGetValue("access_token", out i));
+            Assert.True(((JObject)i).TryGetValue("access_token", out i)); 
+
+            #endregion
         }
 
         private IQueryable<User> GetAllUsers()
