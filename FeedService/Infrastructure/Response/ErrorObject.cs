@@ -4,7 +4,7 @@
     public class ErrorObject
     {
         public string Error { get; }
-        public object ModelState { get; set; }
+        public dynamic ModelState { get; set; }
 
         public ErrorObject(string message)
         {
@@ -12,5 +12,5 @@
         }
     }
 
-   
-    }
+
+}

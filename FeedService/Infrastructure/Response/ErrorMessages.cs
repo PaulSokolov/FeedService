@@ -11,6 +11,7 @@
         public const string WRONG_PASSWORD_LENGTH = "Password should be at least 6 symbols";
         public const string INVALID_USERNAME_OR_PASSWORD_ERROR = "Invalid username or password.";
         public const string FEED_ALREADY_EXISTS_ERROR = "This feed already exists in this collection.";
+        public const string FUNCTIONALITY_NOT_IMPLEMENTED_ERROR = "Service do not supports such kind of feed.";
     }
   
     }

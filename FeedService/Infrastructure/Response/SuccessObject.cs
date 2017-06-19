@@ -4,7 +4,7 @@
     public class SuccessObject
     {
         public string Success { get; }
-        public object Result { get; set; }
+        public dynamic Result { get; set; }
 
         public SuccessObject()
         {

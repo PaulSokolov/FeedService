@@ -88,6 +88,11 @@ namespace FeedService.Controllers
                 }
 
             }
+            catch(NotImplementedException ex)
+            {
+                _logger.LogError(new EventId(1), ex, "{0} ERROR: {1}", DateTime.Now, ex.Message);
+                errors.Add(ErrorMessages.FUNCTIONALITY_NOT_IMPLEMENTED_ERROR);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(new EventId(1), ex, "{0} ERROR: {1}", DateTime.Now, ex.Message);
